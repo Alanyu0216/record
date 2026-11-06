@@ -1,0 +1,76 @@
+# Apache 2.4 / Hostinger LiteSpeed. Keep this file at the application root.
+Options -Indexes -MultiViews
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Deny dotfiles and hidden directories, including .git/config and .env.
+  # Leave .well-known available for hosting-managed certificate verification.
+  RewriteRule "(^|/)\.(?!well-known(?:/|$))" - [F,L,NC]
+  RewriteRule "^(?:tests|docs|backups|secrets|storage|sessions|logs|node_modules)(?:/|$)" - [F,L,NC]
+
+  # Enable only after the temporary domain's SSL certificate is installed.
+  # Do not trust a browser-supplied X-Forwarded-Proto to skip this check.
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=308,L,NE]
+</IfModule>
+
+# Deny direct requests; PHP require() can still load the configuration normally.
+<FilesMatch "(?i)^(?:config(?:\.[a-z0-9_-]+)?\.php|hub-private(?:\.[a-z0-9_-]+)?\.php|DriveUploader\.gs|composer\.(?:json|lock)|package(?:-lock)?\.json|yarn\.lock|pnpm-lock\.yaml)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "(?i)(?:^\.(?!well-known$)|~$|\.(?:sql|sqlite3?|db|ini|log|bak|old|orig|save|swp|swo|zip|tar|gz|tgz|7z|key|pem|p12|pfx|md)$)">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "same-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+  # Application entry points must revalidate after publishing a new version.
+  <FilesMatch "(?i)^(?:index\.html|sw\.js|manifest\.webmanifest)$">
+    Header always set Cache-Control "no-cache, max-age=0, must-revalidate"
+  </FilesMatch>
+  # Files are not content-hashed: use bounded caching rather than immutable.
+  <FilesMatch "(?i)\.(?:css|js)$">
+    Header always set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+  <Files "sw.js">
+    Header always set Cache-Control "no-cache, max-age=0, must-revalidate"
+  </Files>
+  <FilesMatch "(?i)\.(?:png|jpe?g|webp|svg|ico)$">
+    Header always set Cache-Control "public, max-age=604800, must-revalidate"
+  </FilesMatch>
+  # Never let an intermediary cache API data or authentication responses.
+  <FilesMatch "(?i)\.php$">
+    Header always set Cache-Control "no-store, private, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  <FilesMatch "(?i)(?:\.php$|^(?:index\.html|sw\.js|manifest\.webmanifest)$)">
+    ExpiresActive Off
+  </FilesMatch>
+  ExpiresByType text/css "access plus 1 hour"
+  ExpiresByType text/javascript "access plus 1 hour"
+  ExpiresByType application/javascript "access plus 1 hour"
+  ExpiresByType image/png "access plus 7 days"
+  ExpiresByType image/jpeg "access plus 7 days"
+  ExpiresByType image/webp "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 7 days"
+  ExpiresByType image/x-icon "access plus 7 days"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml
+</IfModule>
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType image/svg+xml .svg
+</IfModule>

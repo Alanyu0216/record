@@ -1,0 +1,64 @@
+# Real runtime configuration and credentials, at any directory depth.
+# config.php is a secret-free loader and MUST be committed with this project.
+# config.example.php and hub-private.example.php contain blank templates only.
+hub-private.php
+hub-private.*.php
+!hub-private.example.php
+config.local.php
+config.production.php
+config.secret.php
+secrets/
+.env
+.env.*
+!.env.example
+.user.ini
+php.ini
+.htpasswd
+.htpasswd.*
+.netrc
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Database dumps and local storage. Keep the schema, never production exports.
+*.sql
+*.sql.*
+!database.sql
+*.sqlite
+*.sqlite3
+*.db
+uploads/
+storage/
+sessions/
+logs/
+*.log
+
+# Hosting exports, backups and temporary archives.
+backups/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.bak
+*.old
+*.orig
+*.save
+*.swp
+*.swo
+*~
+
+# Development tools and generated test artifacts.
+node_modules/
+playwright-report/
+test-results/
+__pycache__/
+*.pyc
+.cache/
+.venv/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
